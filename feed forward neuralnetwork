@@ -1,0 +1,103 @@
+import random
+import math
+
+# Activation function and derivative
+def sigmoid(x):
+    return 1 / (1 + math.exp(-x))
+
+def sigmoid_derivative(x):
+    return x * (1 - x)
+
+# Initialize weights
+def initialize_weights(rows, cols):
+    return [[random.uniform(-1, 1) for _ in range(cols)] for _ in range(rows)]
+
+# Dot product of 2 vectors
+def dot(v1, v2):
+    return sum(x * y for x, y in zip(v1, v2))
+
+# Matrix-vector multiplication
+def mat_vec_mul(mat, vec):
+    return [dot(row, vec) for row in mat]
+
+# XOR training data
+X = [
+    [0, 0],
+    [0, 1],
+    [1, 0],
+    [1, 1]
+]
+
+y = [
+    [0],
+    [1],
+    [1],
+    [0]
+]
+
+# Network dimensions
+input_neurons = 2
+hidden_neurons = 2
+output_neurons = 1
+learning_rate = 0.5
+epochs = 10000
+
+# Initialize weights and biases
+w_input_hidden = initialize_weights(input_neurons, hidden_neurons)
+w_hidden_output = initialize_weights(hidden_neurons, output_neurons)
+b_hidden = [random.uniform(-1, 1) for _ in range(hidden_neurons)]
+b_output = [random.uniform(-1, 1) for _ in range(output_neurons)]
+
+# Training loop
+for epoch in range(epochs):
+    total_error = 0
+    for i in range(len(X)):
+        # Forward pass
+        inputs = X[i]
+        target = y[i]
+
+        # Hidden layer
+        hidden_input = [dot([inputs[j] for j in range(input_neurons)], [w_input_hidden[j][k] for j in range(input_neurons)]) + b_hidden[k] for k in range(hidden_neurons)]
+        hidden_output = [sigmoid(x) for x in hidden_input]
+
+        # Output layer
+        final_input = [dot(hidden_output, [w_hidden_output[j][k] for j in range(hidden_neurons)]) + b_output[k] for k in range(output_neurons)]
+        final_output = [sigmoid(x) for x in final_input]
+
+        # Error
+        error = [target[k] - final_output[k] for k in range(output_neurons)]
+        total_error += sum(e ** 2 for e in error)
+
+        # Backpropagation
+        d_output = [error[k] * sigmoid_derivative(final_output[k]) for k in range(output_neurons)]
+        d_hidden = [sigmoid_derivative(hidden_output[k]) * sum(d_output[j] * w_hidden_output[k][j] for j in range(output_neurons)) for k in range(hidden_neurons)]
+
+        # Update weights hidden -> output
+        for j in range(hidden_neurons):
+            for k in range(output_neurons):
+                w_hidden_output[j][k] += learning_rate * d_output[k] * hidden_output[j]
+
+        # Update biases output
+        for k in range(output_neurons):
+            b_output[k] += learning_rate * d_output[k]
+
+        # Update weights input -> hidden
+        for j in range(input_neurons):
+            for k in range(hidden_neurons):
+                w_input_hidden[j][k] += learning_rate * d_hidden[k] * inputs[j]
+
+        # Update biases hidden
+        for k in range(hidden_neurons):
+            b_hidden[k] += learning_rate * d_hidden[k]
+
+    if epoch % 1000 == 0:
+        print(f"Epoch {epoch}, Error: {total_error:.4f}")
+
+# Final predictions
+print("\nFinal Predictions:")
+for inputs in X:
+    hidden_input = [dot([inputs[j] for j in range(input_neurons)], [w_input_hidden[j][k] for j in range(input_neurons)]) + b_hidden[k] for k in range(hidden_neurons)]
+    hidden_output = [sigmoid(x) for x in hidden_input]
+    final_input = [dot(hidden_output, [w_hidden_output[j][k] for j in range(hidden_neurons)]) + b_output[k] for k in range(output_neurons)]
+    final_output = [sigmoid(x) for x in final_input]
+    print(f"Input: {inputs} => Output: {final_output[0]:.4f}")
