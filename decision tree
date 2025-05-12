@@ -1,0 +1,33 @@
+from sklearn.tree import DecisionTreeClassifier
+from sklearn import tree
+import matplotlib.pyplot as plt
+
+# Sample data (Age: 0=Youth, 1=Middle-aged, 2=Senior; Income: 0=Low, 1=Medium, 2=High)
+# Features: [Age, Income]
+X = [
+    [0, 0],
+    [0, 1],
+    [1, 1],
+    [2, 2],
+    [2, 1],
+    [1, 0],
+    [0, 2],
+    [2, 0]
+]
+
+# Labels: 0 = No, 1 = Yes (buy computer)
+y = [0, 0, 1, 1, 1, 0, 0, 1]
+
+# Create and train the model
+clf = DecisionTreeClassifier(criterion='entropy')  # You can also use "gini"
+clf = clf.fit(X, y)
+
+# Visualize the decision tree
+plt.figure(figsize=(10,6))
+tree.plot_tree(clf, feature_names=['Age', 'Income'], class_names=['No', 'Yes'], filled=True)
+plt.title("Decision Tree")
+plt.show()
+
+# Predict a new example: Senior (2) with Medium Income (1)
+prediction = clf.predict([[2, 1]])
+print("Prediction (1=Yes, 0=No):", prediction[0])
